@@ -19,10 +19,10 @@
       (.shutdownOutput)
       (.close))))
 
-****************************************
+;;****************************************
 ;; A decent amount of the server code was
 ;; taken directly from server-socket.
-****************************************
+;;****************************************
 
 (defn accept-fn [^Socket s connections fun]
   (let [ins (ObjectInputStream. (.getInputStream s))

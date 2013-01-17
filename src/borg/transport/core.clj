@@ -1,6 +1,6 @@
 (ns borg.transport.core
-  (:require [app.commander :as c]
-            [app.transport.basic :as basic]))
+  (:require [borg.commander :as c]
+            [borg.transport.basic :as basic]))
 
 (def server (atom nil))
 (def client (atom nil))
@@ -20,3 +20,9 @@
 (defn client-close []
   (basic/close-client @client)
   (reset! client nil))
+
+(defn run-command [name options]
+  (basic/send-command
+    @client
+    {:command name
+     :options options}))
