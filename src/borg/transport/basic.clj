@@ -1,4 +1,5 @@
 (ns borg.transport.basic
+  (:use borg.transport.interface)
   (:import [java.io ObjectInputStream ObjectOutputStream]
            [java.net  ServerSocket Socket SocketException]))
 
@@ -69,34 +70,33 @@
        (.readObject)
        (parse-result)))
 
+(defrecord Basic []
+  ITransport
+  (start-server [_ exec-fn port]
+    (reset! executer exec-fn)
+    (create-server-aux init port))
 
-;; Server functions
-
-(defn start-server [exec-fn port]
-  (reset! executer exec-fn)
-  (create-server-aux init port))
-
-(defn stop-server [server]
-  (doseq [s @(:connections server)]
-    (close-socket s))
-  (dosync (ref-set (:connections server) #{}))
-  (.close ^ServerSocket (:server-socket server)))
+  (stop-server [_ server]
+    (doseq [s @(:connections server)]
+      (close-socket s))
+    (dosync (ref-set (:connections server) #{}))
+    (.close ^ServerSocket (:server-socket server)))
 
 
-;; Client functions
+  ;; Client functions
 
-(defn create-client [host port]
-  (let [client (Socket. host port)
-        out-os (ObjectOutputStream. (.getOutputStream client))
-        in-os (ObjectInputStream. (.getInputStream client))]
-    {:client client
-     :in in-os
-     :out out-os}))
+  (create-client [_ host port]
+    (let [client (Socket. host port)
+          out-os (ObjectOutputStream. (.getOutputStream client))
+          in-os (ObjectInputStream. (.getInputStream client))]
+      {:client client
+       :in in-os
+       :out out-os}))
 
-(defn close-client [client]
-  (.close (:client client)))
+  (close-client [_ client]
+    (.close (:client client)))
 
-(defn send-command [client cmd]
-  (-> (:out client)
-      (.writeObject cmd))
-  (get-result client))
+  (send-command [_ client cmd]
+    (-> (:out client)
+        (.writeObject cmd))
+    (get-result client)))

@@ -1,28 +1,29 @@
 (ns borg.transport.core
-  (:require [borg.commander :as c]
+  (:require [borg.transport.interface :as in]
             [borg.transport.basic :as basic]))
 
-(def server (atom nil))
-(def client (atom nil))
 
-(defn server-start [port]
-  (->> (basic/start-server c/exec port)
-       (reset! server)))
 
-(defn server-stop []
-  (basic/stop-server @server)
-  (reset! server nil))
+(def transporters {:basic (borg.transport.basic.Basic.)})
+(def transporter (atom nil))
+
+(defn set-transporter! [k]
+  (reset! transporter (k transporters)))
+
+(defn borglet-start [handler-executer port]
+  (in/start-server @transporter handler-executer port))
+
+(defn borglet-stop [borglet]
+  (in/stop-server @transporter borglet))
 
 (defn client-create [host port]
-  (->> (basic/create-client host port)
-       (reset! client)))
+  (in/create-client @transporter host port))
 
-(defn client-close []
-  (basic/close-client @client)
-  (reset! client nil))
+(defn client-close [client]
+  (in/close-client @transporter client))
 
-(defn run-command [name options]
-  (basic/send-command
-    @client
-    {:command name
+(defn run-handler [client handler options]
+  (in/send-command @transporter
+    client
+    {:handler handler
      :options options}))
