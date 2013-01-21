@@ -2,8 +2,6 @@
   (:require [borg.transport.interface :as in]
             [borg.transport.basic :as basic]))
 
-
-
 (def transporters {:basic (borg.transport.basic.Basic.)})
 (def transporter (atom nil))
 
@@ -15,6 +13,12 @@
 
 (defn borglet-stop [borglet]
   (in/stop-server @transporter borglet))
+
+(defn borglet-clients [borglet]
+  (in/connected-clients @transporter borglet))
+
+(defn borglet-kill-clients [borglet]
+  (in/sever-clients @transporter borglet))
 
 (defn client-create [host port]
   (in/create-client @transporter host port))

@@ -1,6 +1,6 @@
 (ns borg.transport.basic
   (:use borg.transport.interface)
-  (:import [java.io ObjectInputStream ObjectOutputStream]
+  (:import [java.io EOFException ObjectInputStream ObjectOutputStream]
            [java.net  ServerSocket Socket SocketException]))
 
 (def executer (atom nil))
@@ -30,8 +30,10 @@
         outs (ObjectOutputStream. (.getOutputStream s))]
     (-> #(do (dosync (commute connections conj s))
           (try
+            (println "Client connected @ " (.getInetAddress s))
             (fun s ins outs)
-            (catch SocketException e (println (.getMessage e))))
+            (catch EOFException e (println "Got EOF, client disconnected"))
+            (catch SocketException e (println "ACCEPT_FN" (.getMessage e))))
           (close-socket s)
           (dosync (commute connections disj s)))
        (on-thread))))
@@ -55,7 +57,7 @@
   (binding [*socket* socket
             *output* out
             *input* in]
-    (while (.isConnected *socket*)
+    (while (and (.isConnected *socket*) (not (.isClosed *socket*)))
       (->> (.readObject *input*)
            (exec)
            (.writeObject *output*)))))
@@ -82,9 +84,17 @@
     (dosync (ref-set (:connections server) #{}))
     (.close ^ServerSocket (:server-socket server)))
 
+  (connected-clients [_ server]
+    (let [clients (map #(.toString (.getInetAddress %)) @(:connections server))]
+      (println "CLIENTS: " clients)
+      clients))
+
+  (sever-clients [_ server]
+    (doseq [s @(:connections server)]
+      (close-socket s))
+    (dosync (ref-set (:connections server) #{})))
 
   ;; Client functions
-
   (create-client [_ host port]
     (let [client (Socket. host port)
           out-os (ObjectOutputStream. (.getOutputStream client))
