@@ -49,14 +49,11 @@
 (handler/defhandler current-revision [options]
   (util-io/git-revision handler/*user*))
 
-;; args
-;; :repo-url
-;; :commit
-(handler/defhandler update-borglet [options]
+(handler/defhandler update-borglet [{:keys [repo-url commit]}]
   (let [cur-commit (util-io/git-revision handler/*user*)]
-    (util-io/git-deploy-revision handler/*user* (:repo-url options) (:commit options) "../")
+    (util-io/git-deploy-revision handler/*user* repo-url commit "../")
     (spit "../../old.rev" cur-commit)
-    (spit "../../new.rev" (:commit options)))
+    (spit "../../new.rev" commit))
   (stop))
 
 (defn -main [& [port user]]
