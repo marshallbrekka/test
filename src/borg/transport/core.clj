@@ -13,7 +13,7 @@
   (in/start-server @transporter handler-executer port))
 
 (defn borglet-stop [borglet]
-  (in/stop-server @transporter borglet)
+  (in/stop-server @transporter borglet))
 
 (defn borglet-clients [borglet]
   (in/connected-clients @transporter borglet))

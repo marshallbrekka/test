@@ -36,7 +36,7 @@
             (catch EOFException e (lg/info "Got EOF, client disconnected"))
             (catch SocketException e (lg/info "ACCEPT_FN" (.getMessage e))))
           (close-socket s)
-          (dosync (commute connections disj s))
+          (dosync (commute connections disj s)))
        (on-thread))))
 
 (defstruct server-def :server-socket :connections)
