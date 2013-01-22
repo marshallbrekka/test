@@ -50,8 +50,8 @@
   (util-io/git-revision handler/*user*))
 
 (handler/defhandler update-borglet [{:keys [repo-url commit]}]
-  (let [cur-commit (util-io/git-revision handler/*user*)]
-    (util-io/git-deploy-revision handler/*user* repo-url commit "../")
+  (let [cur-commit (util-io/git-revision "root")]
+    (util-io/git-deploy-revision "root" repo-url commit "../")
     (spit "../../old.rev" cur-commit)
     (spit "../../new.rev" commit))
   (stop))

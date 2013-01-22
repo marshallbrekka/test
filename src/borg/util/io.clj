@@ -1,5 +1,6 @@
 (ns borg.util.io
-  (:require [clojure.java.shell :as sh])
+  (:require [clojure.java.shell :as sh]
+            [clojure.tools.logging :as lg])
   (:import [java.io File]))
 
 (defn sh [user cmd & [opts]]
@@ -23,10 +24,13 @@
 
 (defn git-deploy-revision [user repo-url commit revisions-dir]
   (let [commit-dir (str revisions-dir "/" commit)]
-    (when (->> (File. commit-dir)
-               (.exists)
-               (not))
-      (git-clone user repo-url commit-dir)
-      (git-checkout user commit-dir commit))))
+    (lg/info "Deploying revision" commit "from" repo-url "to" commit-dir)
+    (if (->> (File. commit-dir)
+             (.exists)
+             (not))
+      (do
+        (git-clone user repo-url commit-dir)
+        (git-checkout user commit-dir commit))
+      (lg/info "Revision already exists"))))
 
 

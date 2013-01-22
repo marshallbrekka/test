@@ -50,5 +50,6 @@
         (if (contains? @handlers handler)
           ((handler @handlers) options)
           (make-error (str "There is no handler with the name " handler)))
-        (catch Exception e (make-error (.getMessage e))))
+        (catch Exception e (do (doall (map println (.getStackTrace e)))
+                               (make-error (.getMessage e)))))
       (->result))))
