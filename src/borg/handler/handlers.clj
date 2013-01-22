@@ -1,15 +1,6 @@
-(ns app.handler.handlers
+(ns borg.handler.handlers
   (:require [borg.handler.core :as h]
-            [clojure.java.shell :as sh]))
-
-(defn sh [cmd & [opts]]
-  (let [re (->> (into [] opts)
-                (apply concat [cmd])
-                (apply sh/sh "su" h/*user* "-c"))]
-    (if (not= 0 (:exit re))
-      (h/make-error "Command exited with code other than zero."
-                  re)
-      re)))
+            [borg.util.io :as io]))
 
 ;; Options is a map with keys
 ;; *required*
@@ -19,9 +10,22 @@
 ;; with the exception that all supplied values from the client side must
 ;; be serializable (no streams).
 (h/defhandler shell [options]
-  (sh (:command options)
-      (dissoc options :command)))
+  (let [re (io/sh h/*user*
+                  (:command options)
+                  (dissoc options :command))]
+    (if (not= 0 (:exit re))
+      (h/make-error "Command exited with code other than zero." re)
+      re)))
 
 ;; returns the user this command was executed as
 (h/defhandler user [options]
   h/*user*)
+
+
+;; args
+;; :repo-url
+;; :commit
+(h/defhandler update-borglet [options]
+  (let [cur-commit (io/sh h/*user* "git git rev-parse HEAD")]
+    (io/git-deploy-revision h/*user* (:repo-url options) (:commit options) "../")
+    ))

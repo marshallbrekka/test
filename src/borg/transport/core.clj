@@ -1,6 +1,7 @@
 (ns borg.transport.core
   (:require [borg.transport.interface :as in]
-            [borg.transport.basic :as basic]))
+            [borg.transport.basic :as basic]
+            [clojure.tools.logging :as lg]))
 
 (def transporters {:basic (borg.transport.basic.Basic.)})
 (def transporter (atom nil))
@@ -12,7 +13,7 @@
   (in/start-server @transporter handler-executer port))
 
 (defn borglet-stop [borglet]
-  (in/stop-server @transporter borglet))
+  (in/stop-server @transporter borglet)
 
 (defn borglet-clients [borglet]
   (in/connected-clients @transporter borglet))

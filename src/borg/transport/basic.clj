@@ -1,5 +1,6 @@
 (ns borg.transport.basic
   (:use borg.transport.interface)
+  (:require [clojure.tools.logging :as lg])
   (:import [java.io EOFException ObjectInputStream ObjectOutputStream]
            [java.net  ServerSocket Socket SocketException]))
 
@@ -30,12 +31,12 @@
         outs (ObjectOutputStream. (.getOutputStream s))]
     (-> #(do (dosync (commute connections conj s))
           (try
-            (println "Client connected @ " (.getInetAddress s))
+            (lg/info "Client connected @ " (.getInetAddress s))
             (fun s ins outs)
-            (catch EOFException e (println "Got EOF, client disconnected"))
-            (catch SocketException e (println "ACCEPT_FN" (.getMessage e))))
+            (catch EOFException e (lg/info "Got EOF, client disconnected"))
+            (catch SocketException e (lg/info "ACCEPT_FN" (.getMessage e))))
           (close-socket s)
-          (dosync (commute connections disj s)))
+          (dosync (commute connections disj s))
        (on-thread))))
 
 (defstruct server-def :server-socket :connections)
@@ -46,7 +47,7 @@
     (on-thread #(when-not (.isClosed ss)
       (try
         (accept-fn (.accept ss) connections fun)
-        (catch SocketException e (println "EXCEPTION" (.getMessage e))))
+        (catch SocketException e (lg/info "EXCEPTION" (.getMessage e))))
       (recur)))
     (struct-map server-def :server-socket ss :connections connections)))
 
@@ -86,7 +87,7 @@
 
   (connected-clients [_ server]
     (let [clients (map #(.toString (.getInetAddress %)) @(:connections server))]
-      (println "CLIENTS: " clients)
+      (lg/info "CLIENTS: " clients)
       clients))
 
   (sever-clients [_ server]
