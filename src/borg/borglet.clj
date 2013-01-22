@@ -47,7 +47,7 @@
   (transport/borglet-kill-clients @borglet))
 
 (handler/defhandler current-revision [options]
-  (util-io/git-revision handler/*user*))
+  (util-io/git-revision "root"))
 
 (handler/defhandler update-borglet [{:keys [repo-url commit]}]
   (let [cur-commit (util-io/git-revision "root")]
