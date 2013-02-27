@@ -50,7 +50,7 @@ do
      `ln -s revisions/$NEW_COMMIT current`
    fi
    echo Starting borglet
-   cd $APP_DIR && LEIN_ROOT=true lein run $1 $2;
+   cd $APP_DIR && LEIN_ROOT=true /usr/local/bin/lein run $1 $2;
    cd $ROOT_DIR
    sleep 10;
 done
